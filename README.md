@@ -20,7 +20,7 @@ agile_cw/
 │   │   ├── core-docs/             # SRS, backlog, vision, etc.
 │   │   ├── sprints/               # Per-sprint docs
 │   │   └── qa/                    # Test plans & bug reports
-│   └── ECOCHAIN_BUILD_GUIDE.md
+│   └── ecochain_implementation.md
 │
 └── README.md                      # This file
 ```
