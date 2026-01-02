@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  role         String   // "DONOR" or "RECEIVER"
+  orgId        String?  // Only for Receivers
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  donatedItems Item[]   @relation("DonorItems")
+  claimedItems Item[]   @relation("ReceiverItems")
+}
+
+model Item {
+  id         String   @id @default(uuid())
+  name       String
+  quantity   Int
+  expiry     DateTime
+  photoUrl   String?
+  status     String   @default("AVAILABLE") // "AVAILABLE", "RESERVED", "COMPLETED"
+  createdAt  DateTime @default(now())
+
+  // Relations
+  donor      User     @relation("DonorItems", fields: [donorId], references: [id])
+  donorId    String
+  receiver   User?    @relation("ReceiverItems", fields: [receiverId], references: [id])
+  receiverId String?
+}
