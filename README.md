@@ -20,7 +20,7 @@ agile_cw/
 │   │   ├── core-docs/             # SRS, backlog, vision, etc.
 │   │   ├── sprints/               # Per-sprint docs
 │   │   └── qa/                    # Test plans & bug reports
-│   └── ECOCHAIN_BUILD_GUIDE.md
+│   └── ecochain_implementation.md
 │
 └── README.md                      # This file
 ```
@@ -144,10 +144,13 @@ App runs at: `http://localhost:5173`
 ##  Features
 
 - **User Registration** — Donors & Receivers with role-based access
-- **Item Posting** — Photos, quantities, expiry dates
+- **Item Posting** — Photos, quantities, expiry dates, pickup instructions
 - **Real-Time Dashboard** — Socket.io live updates
 - **Instant Claiming** — First-come-first-served system
-- **Status Tracking** — Available → Reserved → Collected
+- **Cancel Reservation** — Receivers can release claimed items
+- **Mark as Collected** — Both parties can confirm pickup
+- **Status Tracking** — Available → Reserved → Completed
+- **Contact Details** — Phone numbers and collection addresses
 
 ---
 
@@ -158,7 +161,8 @@ App runs at: `http://localhost:5173`
 | **Agile Index**     | [project_docs/agile/00-index.md](project_docs/agile/00-index.md)                                                                                 |
 | **SRS**             | [project_docs/agile/core-docs/01-software-requirements-specification.md](project_docs/agile/core-docs/01-software-requirements-specification.md) |
 | **Product Backlog** | [project_docs/agile/core-docs/03-product-backlog.md](project_docs/agile/core-docs/03-product-backlog.md)                                         |
-| **Build Guide**     | [project_docs/ECOCHAIN_BUILD_GUIDE.md](project_docs/ECOCHAIN_BUILD_GUIDE.md)                                                                     |
+| **Start Guide**     | [project_docs/start_instructions.md](project_docs/start_instructions.md)                                                                       |
+| **Build Guide**     | [ECOCHAIN_BUILD_GUIDE.md](ECOCHAIN_BUILD_GUIDE.md)                                                                     |
 | **App README**      | [ecochain/README.md](ecochain/README.md)                                                                                                         |
 
 ---
@@ -167,22 +171,27 @@ App runs at: `http://localhost:5173`
 
 | Metric            | Value        |
 | ----------------- | ------------ |
-| Sprints Completed | 4/4          |
-| Story Points      | 75/75 (100%) |
-| Bugs Fixed        | 7/7          |
+| Sprints Completed | 5/5          |
+| Story Points      | 96/96 (100%) |
+| User Stories      | 28           |
 | Test Pass Rate    | 100%         |
 
 ---
 
 ##  API Endpoints
 
-| Method | Endpoint               | Description           |
-| ------ | ---------------------- | --------------------- |
-| POST   | `/api/auth/register`   | Register user         |
-| POST   | `/api/auth/login`      | Login                 |
-| GET    | `/api/items`           | List available items  |
-| POST   | `/api/items`           | Post item (Donor)     |
-| PATCH  | `/api/items/:id/claim` | Claim item (Receiver) |
+| Method | Endpoint                  | Description              |
+| ------ | ------------------------- | ------------------------ |
+| POST   | `/api/auth/register`      | Register user            |
+| POST   | `/api/auth/login`         | Login                    |
+| GET    | `/api/auth/me`            | Get current user         |
+| GET    | `/api/items`              | List available items     |
+| POST   | `/api/items`              | Post item (Donor)        |
+| PATCH  | `/api/items/:id/claim`    | Claim item (Receiver)    |
+| PATCH  | `/api/items/:id/cancel`   | Cancel reservation       |
+| PATCH  | `/api/items/:id/complete` | Mark as collected        |
+| GET    | `/api/items/my-posts`     | Get donor's items        |
+| GET    | `/api/items/my-claims`    | Get receiver's claims    |
 
 ---
 
@@ -191,7 +200,28 @@ App runs at: `http://localhost:5173`
 - **Sprint 1** (Dec 5-11): Authentication
 - **Sprint 2** (Dec 12-18): Posting & Dashboard
 - **Sprint 3** (Dec 19-25): Claim System (MVP)
-- **Sprint 4** (Dec 26-Jan 1): Optimizations
+- **Sprint 4** (Dec 26-Jan 1): UI/UX & Docker
+- **Sprint 5** (Jan 2-3): Collection Workflow Enhancement
+
+---
+
+##  Test Credentials
+
+**Password for all accounts:** `password123`
+
+### Donors:
+| Email | Name |
+|-------|------|
+| keells@ecochain.lk | Keells Super - Colombo 7 |
+| peaborey@ecochain.lk | Perera & Sons Bakery |
+| shanmugas@ecochain.lk | Shanmugas Restaurant |
+
+### Receivers:
+| Email | Name |
+|-------|------|
+| sarvodaya@ecochain.lk | Sarvodaya Shramadana Movement |
+| elders@ecochain.lk | Colombo Elders Home |
+| helpage@ecochain.lk | HelpAge Sri Lanka |
 
 
 ---
