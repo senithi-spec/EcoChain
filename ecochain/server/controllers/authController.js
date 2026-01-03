@@ -7,11 +7,21 @@ const prisma = new PrismaClient();
 // Register new user
 const register = async (req, res) => {
   try {
-    const { email, name, role, orgId, password } = req.body;
+    const { email, name, role, orgId, phone, address, password } = req.body;
 
     // Validation
     if (!email || !name || !role || !password) {
       return res.status(400).json({ error: "All fields are required." });
+    }
+
+    if (!phone) {
+      return res.status(400).json({ error: "Phone number is required." });
+    }
+
+    if (role === "DONOR" && !address) {
+      return res
+        .status(400)
+        .json({ error: "Collection address is required for donors." });
     }
 
     if (!["DONOR", "RECEIVER"].includes(role)) {
@@ -46,6 +56,8 @@ const register = async (req, res) => {
         name,
         role,
         orgId: role === "RECEIVER" ? orgId : null,
+        phone,
+        address: role === "DONOR" ? address : null,
         passwordHash,
       },
       select: {
@@ -54,6 +66,8 @@ const register = async (req, res) => {
         name: true,
         role: true,
         orgId: true,
+        phone: true,
+        address: true,
         createdAt: true,
       },
     });
@@ -105,6 +119,8 @@ const login = async (req, res) => {
         name: user.name,
         role: user.role,
         orgId: user.orgId,
+        phone: user.phone,
+        address: user.address,
       },
       token,
     });
@@ -125,6 +141,8 @@ const getMe = async (req, res) => {
         name: true,
         role: true,
         orgId: true,
+        phone: true,
+        address: true,
         createdAt: true,
       },
     });

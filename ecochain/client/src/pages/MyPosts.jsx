@@ -5,6 +5,8 @@ import api from "../services/api";
 const MyPosts = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     const fetchMyPosts = async () => {
@@ -37,7 +39,7 @@ const MyPosts = () => {
         return <span className="badge badge-reserved">Reserved</span>;
       case "COMPLETED":
         return (
-          <span className="badge bg-macos-gray-100 text-macos-gray-600">
+          <span className="badge bg-macos-green/10 text-macos-green">
             Completed
           </span>
         );
@@ -46,10 +48,47 @@ const MyPosts = () => {
     }
   };
 
+  const handleComplete = async (itemId) => {
+    setActionLoading(itemId);
+    try {
+      await api.patch(`/items/${itemId}/complete`);
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? { ...item, status: "COMPLETED", collectedAt: new Date() }
+            : item
+        )
+      );
+      setMessage({ type: "success", text: "Item marked as collected!" });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: error.response?.data?.error || "Failed to mark as collected",
+      });
+      setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const apiUrl = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Message Toast */}
+      {message && (
+        <div
+          className={`fixed top-24 right-4 z-50 animate-slide-in ${
+            message.type === "success"
+              ? "bg-macos-green text-white"
+              : "bg-macos-red text-white"
+          } px-6 py-3 rounded-macos shadow-macos-lg`}
+        >
+          {message.text}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
@@ -150,7 +189,39 @@ const MyPosts = () => {
                         <span className="text-sm font-medium text-macos-gray-900">
                           {item.receiver.name}
                         </span>
+                        {item.receiver.phone && (
+                          <span className="text-sm text-macos-gray-500">
+                            • {item.receiver.phone}
+                          </span>
+                        )}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Action Button for Reserved Items */}
+                  {item.status === "RESERVED" && (
+                    <div className="mt-4">
+                      <button
+                        onClick={() => handleComplete(item.id)}
+                        disabled={actionLoading === item.id}
+                        className="btn-macos btn-primary text-sm py-2 px-4 flex items-center space-x-1"
+                      >
+                        {actionLoading === item.id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        ) : (
+                          <>
+                            <span>✓</span>
+                            <span>Confirm Collection</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Completed Info */}
+                  {item.status === "COMPLETED" && item.collectedAt && (
+                    <div className="mt-3 text-sm text-macos-green">
+                      ✓ Collected on {formatDate(item.collectedAt)}
                     </div>
                   )}
                 </div>

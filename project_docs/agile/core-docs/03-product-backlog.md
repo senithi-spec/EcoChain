@@ -1,9 +1,9 @@
 # Product Backlog
 
 **Project:** EcoChain  
-**Version:** 1.0  
+**Version:** 2.0  
 **Created:** December 5, 2025  
-**Last Updated:** January 2, 2026
+**Last Updated:** January 3, 2026
 
 ---
 
@@ -565,12 +565,12 @@ This product backlog contains all user stories for the EcoChain project, priorit
 
 **Acceptance Criteria:**
 
-- [ ] Required fields show error if empty
-- [ ] Email field validates format
-- [ ] Password shows minimum length requirement
-- [ ] Expiry date shows error if in past
-- [ ] Errors appear inline below fields
-- [ ] Errors clear when field is corrected
+- [x] Required fields show error if empty
+- [x] Email field validates format
+- [x] Password shows minimum length requirement
+- [x] Expiry date shows error if in past
+- [x] Errors appear inline below fields
+- [x] Errors clear when field is corrected
 
 ---
 
@@ -590,12 +590,140 @@ This product backlog contains all user stories for the EcoChain project, priorit
 
 **Acceptance Criteria:**
 
-- [ ] 400 errors show validation message from server
-- [ ] 401 errors redirect to login
-- [ ] 403 errors show "Not authorized" message
-- [ ] 404 errors show "Not found" message
-- [ ] 500 errors show generic "Something went wrong"
-- [ ] Network errors suggest checking connection
+- [x] 400 errors show validation message from server
+- [x] 401 errors redirect to login
+- [x] 403 errors show "Not authorized" message
+- [x] 404 errors show "Not found" message
+- [x] 500 errors show generic "Something went wrong"
+- [x] Network errors suggest checking connection
+
+---
+
+## Epic 8: Collection Workflow Enhancement
+
+### US-024: Cancel Reservation
+
+| Field            | Value                   |
+| ---------------- | ----------------------- |
+| **ID**           | US-024                  |
+| **Title**        | Cancel Item Reservation |
+| **Priority**     | Medium                  |
+| **Story Points** | 3                       |
+| **Sprint**       | Sprint 5                |
+
+**As a** receiver,  
+**I want to** cancel my claim on a reserved item,  
+**So that** other organizations can claim it if I can't collect it.
+
+**Acceptance Criteria:**
+
+- [x] "Cancel Claim" button visible on reserved items in My Claims
+- [x] Clicking cancel calls `PATCH /api/items/:id/cancel`
+- [x] Server validates user is the item's receiver
+- [x] Item status changes back to AVAILABLE
+- [x] Receiver ID is cleared from item
+- [x] Socket event broadcasts item availability
+- [x] Item reappears on dashboard for other receivers
+- [x] Success message shown to user
+
+---
+
+### US-025: Mark Item as Collected
+
+| Field            | Value                  |
+| ---------------- | ---------------------- |
+| **ID**           | US-025                 |
+| **Title**        | Mark Item as Collected |
+| **Priority**     | Medium                 |
+| **Story Points** | 3                      |
+| **Sprint**       | Sprint 5               |
+
+**As a** donor or receiver,  
+**I want to** mark a reserved item as collected/completed,  
+**So that** the donation cycle is properly tracked.
+
+**Acceptance Criteria:**
+
+- [x] "Mark Collected" button visible on reserved items
+- [x] Both donor and receiver can mark as completed
+- [x] Clicking calls `PATCH /api/items/:id/complete`
+- [x] Item status changes to COMPLETED
+- [x] `collectedAt` timestamp is recorded
+- [x] Socket event broadcasts completion
+- [x] Item status updated in My Posts and My Claims
+- [x] Success message shown to user
+
+---
+
+### US-026: Collection Location
+
+| Field            | Value                    |
+| ---------------- | ------------------------ |
+| **ID**           | US-026                   |
+| **Title**        | Donor Collection Address |
+| **Priority**     | Medium                   |
+| **Story Points** | 3                        |
+| **Sprint**       | Sprint 5                 |
+
+**As a** donor,  
+**I want to** provide my collection address during registration,  
+**So that** receivers know where to pick up items.
+
+**Acceptance Criteria:**
+
+- [x] Address field added to donor registration form
+- [x] Address is required for donors
+- [x] Address stored in User record
+- [x] Address displayed on item cards for receivers
+- [x] Address visible in My Claims collection details
+
+---
+
+### US-027: Contact Phone Number
+
+| Field            | Value              |
+| ---------------- | ------------------ |
+| **ID**           | US-027             |
+| **Title**        | User Contact Phone |
+| **Priority**     | Medium             |
+| **Story Points** | 2                  |
+| **Sprint**       | Sprint 5           |
+
+**As a** user,  
+**I want to** provide my phone number,  
+**So that** I can be contacted for pickup coordination.
+
+**Acceptance Criteria:**
+
+- [x] Phone field added to registration form
+- [x] Phone is required for all users
+- [x] Phone stored in User record
+- [x] Donor phone visible in receiver's My Claims
+- [x] Receiver phone visible in donor's My Posts (when reserved)
+
+---
+
+### US-028: Pickup Instructions
+
+| Field            | Value                    |
+| ---------------- | ------------------------ |
+| **ID**           | US-028                   |
+| **Title**        | Item Pickup Instructions |
+| **Priority**     | Medium                   |
+| **Story Points** | 2                        |
+| **Sprint**       | Sprint 5                 |
+
+**As a** donor,  
+**I want to** add pickup instructions when posting an item,  
+**So that** receivers know how and when to collect.
+
+**Acceptance Criteria:**
+
+- [x] Pickup notes field added to item posting form
+- [x] Pickup notes are optional
+- [x] Notes stored in Item record
+- [x] Notes displayed on item cards
+- [x] Notes visible in My Claims collection details
 
 ---
 
@@ -604,9 +732,9 @@ This product backlog contains all user stories for the EcoChain project, priorit
 | Priority  | Count  | Story Points |
 | --------- | ------ | ------------ |
 | High      | 12     | 43           |
-| Medium    | 9      | 33           |
+| Medium    | 14     | 49           |
 | Low       | 2      | 4            |
-| **Total** | **23** | **80**       |
+| **Total** | **28** | **96**       |
 
 ---
 
@@ -618,8 +746,10 @@ This product backlog contains all user stories for the EcoChain project, priorit
 | Sprint 2 | US-006 to US-010                 | 21           |
 | Sprint 3 | US-011 to US-014                 | 16           |
 | Sprint 4 | US-015 to US-020, US-022, US-023 | 26           |
+| Sprint 5 | US-024 to US-028                 | 13           |
 | Buffer   | US-021                           | 8            |
 
 ---
 
 _Backlog maintained by the EcoChain Product Owner_
+_Last Updated: January 3, 2026_

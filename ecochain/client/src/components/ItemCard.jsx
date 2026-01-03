@@ -71,6 +71,21 @@ const ItemCard = ({ item, onClaim, claiming }) => {
           </span>
         </div>
 
+        {/* Collection Location */}
+        {item.donor?.address && (
+          <div className="flex items-start space-x-1.5 mb-3 text-sm text-macos-gray-500">
+            <span className="flex-shrink-0">📍</span>
+            <span className="line-clamp-2">{item.donor.address}</span>
+          </div>
+        )}
+
+        {/* Pickup Notes */}
+        {item.pickupNotes && (
+          <div className="mb-3 p-2 bg-macos-gray-50 rounded-lg text-xs text-macos-gray-600">
+            <span className="font-medium">Note:</span> {item.pickupNotes}
+          </div>
+        )}
+
         {/* Expiry Info */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-1.5">

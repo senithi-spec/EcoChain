@@ -6,6 +6,8 @@ const {
   getItems,
   createItem,
   claimItem,
+  cancelClaim,
+  completeItem,
   getMyPosts,
   getMyClaims,
 } = require("../controllers/itemController");
@@ -47,6 +49,13 @@ router.post(
   createItem
 );
 router.patch("/:id/claim", authMiddleware, requireRole("RECEIVER"), claimItem);
+router.patch(
+  "/:id/cancel",
+  authMiddleware,
+  requireRole("RECEIVER"),
+  cancelClaim
+);
+router.patch("/:id/complete", authMiddleware, completeItem);
 router.get("/my-posts", authMiddleware, requireRole("DONOR"), getMyPosts);
 router.get("/my-claims", authMiddleware, requireRole("RECEIVER"), getMyClaims);
 

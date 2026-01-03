@@ -10,6 +10,8 @@ const Register = () => {
     confirmPassword: "",
     role: "DONOR",
     orgId: "",
+    phone: "",
+    address: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -42,6 +44,16 @@ const Register = () => {
       return;
     }
 
+    if (!formData.phone) {
+      setError("Phone number is required");
+      return;
+    }
+
+    if (formData.role === "DONOR" && !formData.address) {
+      setError("Collection address is required for donors");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -51,6 +63,8 @@ const Register = () => {
         password: formData.password,
         role: formData.role,
         orgId: formData.role === "RECEIVER" ? formData.orgId : undefined,
+        phone: formData.phone,
+        address: formData.role === "DONOR" ? formData.address : undefined,
       });
       navigate("/dashboard");
     } catch (err) {
@@ -187,6 +201,40 @@ const Register = () => {
                   placeholder="Your Organization Registration ID"
                   required
                 />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-macos-gray-700 mb-2">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="input-macos"
+                placeholder="+94 (77) 45-96926"
+                required
+              />
+            </div>
+
+            {formData.role === "DONOR" && (
+              <div>
+                <label className="block text-sm font-medium text-macos-gray-700 mb-2">
+                  Collection Address
+                </label>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  className="input-macos min-h-[80px]"
+                  placeholder="Where receivers can collect food items"
+                  required
+                />
+                <p className="text-xs text-macos-gray-500 mt-1">
+                  This address will be shown to receivers when they claim items
+                </p>
               </div>
             )}
 

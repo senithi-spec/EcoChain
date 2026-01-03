@@ -5,6 +5,7 @@ const ItemForm = ({ onSubmit, loading }) => {
     name: "",
     quantity: "",
     expiry: "",
+    pickupNotes: "",
   });
   const [photo, setPhoto] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -72,6 +73,9 @@ const ItemForm = ({ onSubmit, loading }) => {
       data.append("name", formData.name);
       data.append("quantity", formData.quantity);
       data.append("expiry", formData.expiry);
+      if (formData.pickupNotes) {
+        data.append("pickupNotes", formData.pickupNotes);
+      }
       if (photo) {
         data.append("photo", photo);
       }
@@ -147,6 +151,23 @@ const ItemForm = ({ onSubmit, loading }) => {
         {errors.expiry && (
           <p className="mt-1.5 text-sm text-macos-red">{errors.expiry}</p>
         )}
+      </div>
+
+      {/* Pickup Notes */}
+      <div>
+        <label className="block text-sm font-medium text-macos-gray-700 mb-2">
+          Pickup Instructions (Optional)
+        </label>
+        <textarea
+          name="pickupNotes"
+          value={formData.pickupNotes}
+          onChange={handleChange}
+          className="input-macos min-h-[80px]"
+          placeholder="e.g., Use back entrance, ask for John, available after 5pm"
+        />
+        <p className="text-xs text-macos-gray-500 mt-1">
+          Add any special instructions for collecting this item
+        </p>
       </div>
 
       {/* Photo Upload */}

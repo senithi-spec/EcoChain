@@ -13,6 +13,8 @@ model User {
   name         String
   role         String   // "DONOR" or "RECEIVER"
   orgId        String?  // Only for Receivers
+  phone        String?  // Contact number
+  address      String?  // Collection location (for donors)
   passwordHash String
   createdAt    DateTime @default(now())
 
@@ -22,13 +24,15 @@ model User {
 }
 
 model Item {
-  id         String   @id @default(uuid())
-  name       String
-  quantity   Int
-  expiry     DateTime
-  photoUrl   String?
-  status     String   @default("AVAILABLE") // "AVAILABLE", "RESERVED", "COMPLETED"
-  createdAt  DateTime @default(now())
+  id          String    @id @default(uuid())
+  name        String
+  quantity    Int
+  expiry      DateTime
+  photoUrl    String?
+  status      String    @default("AVAILABLE") // "AVAILABLE", "RESERVED", "COMPLETED"
+  pickupNotes String?   // Collection instructions
+  collectedAt DateTime? // When actually collected
+  createdAt   DateTime  @default(now())
 
   // Relations
   donor      User     @relation("DonorItems", fields: [donorId], references: [id])

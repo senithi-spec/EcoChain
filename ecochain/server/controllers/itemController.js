@@ -9,7 +9,7 @@ const getItems = async (req, res) => {
       where: { status: "AVAILABLE" },
       include: {
         donor: {
-          select: { id: true, name: true },
+          select: { id: true, name: true, phone: true, address: true },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -25,7 +25,7 @@ const getItems = async (req, res) => {
 // Create new item (Donor only)
 const createItem = async (req, res) => {
   try {
-    const { name, quantity, expiry } = req.body;
+    const { name, quantity, expiry, pickupNotes } = req.body;
     const donorId = req.user.id;
 
     // Validation
@@ -60,11 +60,12 @@ const createItem = async (req, res) => {
         quantity: parseInt(quantity),
         expiry: expiryDate,
         photoUrl,
+        pickupNotes: pickupNotes || null,
         donorId,
       },
       include: {
         donor: {
-          select: { id: true, name: true },
+          select: { id: true, name: true, phone: true, address: true },
         },
       },
     });
@@ -105,8 +106,8 @@ const claimItem = async (req, res) => {
         receiverId,
       },
       include: {
-        donor: { select: { id: true, name: true } },
-        receiver: { select: { id: true, name: true } },
+        donor: { select: { id: true, name: true, phone: true, address: true } },
+        receiver: { select: { id: true, name: true, phone: true } },
       },
     });
 
@@ -127,7 +128,7 @@ const getMyPosts = async (req, res) => {
     const items = await prisma.item.findMany({
       where: { donorId: req.user.id },
       include: {
-        receiver: { select: { id: true, name: true } },
+        receiver: { select: { id: true, name: true, phone: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -145,7 +146,7 @@ const getMyClaims = async (req, res) => {
     const items = await prisma.item.findMany({
       where: { receiverId: req.user.id },
       include: {
-        donor: { select: { id: true, name: true } },
+        donor: { select: { id: true, name: true, phone: true, address: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -157,4 +158,106 @@ const getMyClaims = async (req, res) => {
   }
 };
 
-module.exports = { getItems, createItem, claimItem, getMyPosts, getMyClaims };
+// Cancel a reservation (Receiver only - can only cancel their own claims)
+const cancelClaim = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const receiverId = req.user.id;
+
+    // Find item
+    const item = await prisma.item.findUnique({ where: { id } });
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found." });
+    }
+
+    if (item.receiverId !== receiverId) {
+      return res
+        .status(403)
+        .json({ error: "You can only cancel your own claims." });
+    }
+
+    if (item.status !== "RESERVED") {
+      return res
+        .status(400)
+        .json({ error: "Only reserved items can be cancelled." });
+    }
+
+    // Update item back to available
+    const updatedItem = await prisma.item.update({
+      where: { id },
+      data: {
+        status: "AVAILABLE",
+        receiverId: null,
+      },
+      include: {
+        donor: { select: { id: true, name: true, phone: true, address: true } },
+      },
+    });
+
+    // Emit socket event - item is available again
+    const io = req.app.get("io");
+    io.emit("item:new", updatedItem);
+
+    res.json({ message: "Claim cancelled successfully.", item: updatedItem });
+  } catch (error) {
+    console.error("CancelClaim error:", error);
+    res.status(500).json({ error: "Failed to cancel claim." });
+  }
+};
+
+// Mark item as completed/collected (Donor or Receiver can mark)
+const completeItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    // Find item
+    const item = await prisma.item.findUnique({ where: { id } });
+
+    if (!item) {
+      return res.status(404).json({ error: "Item not found." });
+    }
+
+    // Only donor or receiver of this item can mark it complete
+    if (item.donorId !== userId && item.receiverId !== userId) {
+      return res
+        .status(403)
+        .json({ error: "You are not authorized to complete this item." });
+    }
+
+    if (item.status !== "RESERVED") {
+      return res
+        .status(400)
+        .json({ error: "Only reserved items can be marked as completed." });
+    }
+
+    // Update item to completed
+    const updatedItem = await prisma.item.update({
+      where: { id },
+      data: {
+        status: "COMPLETED",
+        collectedAt: new Date(),
+      },
+      include: {
+        donor: { select: { id: true, name: true } },
+        receiver: { select: { id: true, name: true } },
+      },
+    });
+
+    res.json({ message: "Item marked as collected!", item: updatedItem });
+  } catch (error) {
+    console.error("CompleteItem error:", error);
+    res.status(500).json({ error: "Failed to complete item." });
+  }
+};
+
+module.exports = {
+  getItems,
+  createItem,
+  claimItem,
+  cancelClaim,
+  completeItem,
+  getMyPosts,
+  getMyClaims,
+};

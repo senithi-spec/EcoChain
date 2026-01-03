@@ -1,7 +1,7 @@
 # Software Requirements Specification (SRS)
 
 **Project Name:** EcoChain — Local Supply Chain Food Waste Reducer  
-**Document Version:** 2.0  
+**Document Version:** 3.0  
 **Date:** January 3, 2026  
 **Status:** Approved  
 **Classification:** Internal Use Only
@@ -10,10 +10,11 @@
 
 ## Document Control
 
-| Version | Date       | Author        | Changes                                      |
-| ------- | ---------- | ------------- | -------------------------------------------- |
-| 1.0     | 2025-12-28 | EcoChain Team | Initial draft                                |
-| 2.0     | 2026-01-03 | EcoChain Team | Industry standard update, added traceability |
+| Version | Date       | Author        | Changes                                                |
+| ------- | ---------- | ------------- | ------------------------------------------------------ |
+| 1.0     | 2025-12-28 | EcoChain Team | Initial draft                                          |
+| 2.0     | 2026-01-03 | EcoChain Team | Industry standard update, added traceability           |
+| 3.0     | 2026-01-03 | EcoChain Team | Added collection workflow: cancel, complete, addresses |
 
 ### Approval Signatures
 
@@ -378,12 +379,17 @@ EcoChain follows a three-tier architecture pattern:
 | FR-4.1 | Claim Item              | High     | US-012     | 3      | ✅ Complete |
 | FR-4.2 | View My Claimed Items   | Medium   | US-013     | 3      | ✅ Complete |
 | FR-4.3 | Role-Based Claim Button | High     | US-014     | 3      | ✅ Complete |
+| FR-4.4 | Cancel Reservation      | Medium   | US-024     | 5      | ✅ Complete |
+| FR-4.5 | Mark Item as Collected  | Medium   | US-025     | 5      | ✅ Complete |
 | FR-5.1 | macOS-Inspired Theme    | Medium   | US-015     | 4      | ✅ Complete |
 | FR-5.2 | Responsive Design       | Medium   | US-016     | 4      | ✅ Complete |
 | FR-5.3 | Loading States          | Low      | US-017     | 4      | ✅ Complete |
 | FR-5.4 | Empty States            | Low      | US-018     | 4      | ✅ Complete |
 | FR-6.1 | Docker Support          | Medium   | US-019     | 4      | ✅ Complete |
 | FR-6.2 | Project Documentation   | Medium   | US-020     | 4      | ✅ Complete |
+| FR-7.1 | Collection Location     | Medium   | US-026     | 5      | ✅ Complete |
+| FR-7.2 | Contact Phone Number    | Medium   | US-027     | 5      | ✅ Complete |
+| FR-7.3 | Pickup Instructions     | Medium   | US-028     | 5      | ✅ Complete |
 
 ---
 
@@ -814,16 +820,18 @@ EcoChain follows a three-tier architecture pattern:
 
 #### 6.2.2 Endpoints Summary
 
-| Method | Endpoint         | Description           | Auth Required  |
-| ------ | ---------------- | --------------------- | -------------- |
-| POST   | /auth/register   | Create new user       | No             |
-| POST   | /auth/login      | Authenticate user     | No             |
-| GET    | /auth/me         | Get current user      | Yes            |
-| GET    | /items           | List available items  | Yes            |
-| POST   | /items           | Create new item       | Yes (Donor)    |
-| PATCH  | /items/:id/claim | Claim an item         | Yes (Receiver) |
-| GET    | /items/my-posts  | Get donor's items     | Yes (Donor)    |
-| GET    | /items/my-claims | Get receiver's claims | Yes (Receiver) |
+| Method | Endpoint            | Description            | Auth Required  |
+| ------ | ------------------- | ---------------------- | -------------- |
+| POST   | /auth/register      | Create new user        | No             |
+| POST   | /auth/login         | Authenticate user      | No             |
+| GET    | /auth/me            | Get current user       | Yes            |
+| GET    | /items              | List available items   | Yes            |
+| POST   | /items              | Create new item        | Yes (Donor)    |
+| PATCH  | /items/:id/claim    | Claim an item          | Yes (Receiver) |
+| PATCH  | /items/:id/cancel   | Cancel a reservation   | Yes (Receiver) |
+| PATCH  | /items/:id/complete | Mark item as collected | Yes            |
+| GET    | /items/my-posts     | Get donor's items      | Yes (Donor)    |
+| GET    | /items/my-claims    | Get receiver's claims  | Yes (Receiver) |
 
 ### 6.3 Hardware Interfaces
 
@@ -853,6 +861,8 @@ No specialized hardware interfaces required. Standard web-capable devices with c
 │ name         : String                   │
 │ role         : Enum [DONOR, RECEIVER]   │
 │ orgId        : String (Nullable)        │
+│ phone        : String (Nullable)        │
+│ address      : String (Nullable)        │
 │ passwordHash : String                   │
 │ createdAt    : DateTime                 │
 ├─────────────────────────────────────────┤
@@ -868,16 +878,18 @@ No specialized hardware interfaces required. Standard web-capable devices with c
 ┌─────────────────────────────────────────┐
 │                  Item                    │
 ├─────────────────────────────────────────┤
-│ id         : UUID (PK)                  │
-│ name       : String                     │
-│ quantity   : Integer                    │
-│ expiry     : DateTime                   │
-│ photoUrl   : String (Nullable)          │
-│ status     : Enum [AVAILABLE, RESERVED, │
-│              COMPLETED]                 │
-│ createdAt  : DateTime                   │
-│ donorId    : UUID (FK → User)           │
-│ receiverId : UUID (FK → User, Nullable) │
+│ id          : UUID (PK)                 │
+│ name        : String                    │
+│ quantity    : Integer                   │
+│ expiry      : DateTime                  │
+│ photoUrl    : String (Nullable)         │
+│ status      : Enum [AVAILABLE, RESERVED,│
+│               COMPLETED]                │
+│ pickupNotes : String (Nullable)         │
+│ collectedAt : DateTime (Nullable)       │
+│ createdAt   : DateTime                  │
+│ donorId     : UUID (FK → User)          │
+│ receiverId  : UUID (FK → User, Nullable)│
 ├─────────────────────────────────────────┤
 │ Relations:                              │
 │   donor    : User                       │
@@ -896,8 +908,10 @@ No specialized hardware interfaces required. Standard web-capable devices with c
 │ name         │         │ name         │         │ (as  │
 │ role         │         │ quantity     │         │receiver)
 │ orgId        │         │ expiry       │
-│ passwordHash │         │ photoUrl     │
-│ createdAt    │         │ status       │
+│ phone        │         │ photoUrl     │
+│ address      │         │ status       │
+│ passwordHash │         │ pickupNotes  │
+│ createdAt    │         │ collectedAt  │
 └──────────────┘         │ createdAt    │
                          └──────────────┘
 

@@ -4,6 +4,8 @@ import api from "../services/api";
 const MyClaims = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(null);
+  const [message, setMessage] = useState(null);
 
   useEffect(() => {
     const fetchMyClaims = async () => {
@@ -43,10 +45,68 @@ const MyClaims = () => {
     }
   };
 
+  const handleCancel = async (itemId) => {
+    setActionLoading(itemId);
+    try {
+      await api.patch(`/items/${itemId}/cancel`);
+      setItems((prev) => prev.filter((item) => item.id !== itemId));
+      setMessage({
+        type: "success",
+        text: "Reservation cancelled successfully!",
+      });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: error.response?.data?.error || "Failed to cancel reservation",
+      });
+      setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleComplete = async (itemId) => {
+    setActionLoading(itemId);
+    try {
+      await api.patch(`/items/${itemId}/complete`);
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? { ...item, status: "COMPLETED", collectedAt: new Date() }
+            : item
+        )
+      );
+      setMessage({ type: "success", text: "Item marked as collected!" });
+      setTimeout(() => setMessage(null), 3000);
+    } catch (error) {
+      setMessage({
+        type: "error",
+        text: error.response?.data?.error || "Failed to mark as collected",
+      });
+      setTimeout(() => setMessage(null), 3000);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const apiUrl = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Message Toast */}
+      {message && (
+        <div
+          className={`fixed top-24 right-4 z-50 animate-slide-in ${
+            message.type === "success"
+              ? "bg-macos-green text-white"
+              : "bg-macos-red text-white"
+          } px-6 py-3 rounded-macos shadow-macos-lg`}
+        >
+          {message.text}
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-macos-gray-900">My Claims</h1>
@@ -122,6 +182,69 @@ const MyClaims = () => {
                       </span>
                     </div>
                   </div>
+
+                  {/* Collection Details */}
+                  {item.status === "RESERVED" && (
+                    <div className="mt-4 p-3 bg-macos-blue/5 rounded-macos border border-macos-blue/10">
+                      <h4 className="text-sm font-medium text-macos-gray-900 mb-2">
+                        📍 Collection Details
+                      </h4>
+                      {item.donor?.address && (
+                        <p className="text-sm text-macos-gray-600 mb-1">
+                          <span className="font-medium">Address:</span>{" "}
+                          {item.donor.address}
+                        </p>
+                      )}
+                      {item.donor?.phone && (
+                        <p className="text-sm text-macos-gray-600 mb-1">
+                          <span className="font-medium">Phone:</span>{" "}
+                          {item.donor.phone}
+                        </p>
+                      )}
+                      {item.pickupNotes && (
+                        <p className="text-sm text-macos-gray-600">
+                          <span className="font-medium">Notes:</span>{" "}
+                          {item.pickupNotes}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Completed Info */}
+                  {item.status === "COMPLETED" && item.collectedAt && (
+                    <div className="mt-4 p-3 bg-macos-green/5 rounded-macos border border-macos-green/10">
+                      <p className="text-sm text-macos-green">
+                        ✓ Collected on {formatDate(item.collectedAt)}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  {item.status === "RESERVED" && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button
+                        onClick={() => handleComplete(item.id)}
+                        disabled={actionLoading === item.id}
+                        className="btn-macos btn-primary text-sm py-2 px-4 flex items-center space-x-1"
+                      >
+                        {actionLoading === item.id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        ) : (
+                          <>
+                            <span>✓</span>
+                            <span>Mark Collected</span>
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => handleCancel(item.id)}
+                        disabled={actionLoading === item.id}
+                        className="btn-macos bg-macos-gray-100 text-macos-gray-700 hover:bg-macos-gray-200 text-sm py-2 px-4"
+                      >
+                        Cancel Claim
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
