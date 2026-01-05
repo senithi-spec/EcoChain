@@ -743,8 +743,8 @@ This product backlog contains all user stories for the EcoChain project, priorit
 | Sprint   | Stories                          | Story Points |
 | -------- | -------------------------------- | ------------ |
 | Sprint 1 | US-001 to US-005                 | 12           |
-| Sprint 2 | US-006 to US-010                 | 21           |
-| Sprint 3 | US-011 to US-014                 | 16           |
+| Sprint 2 | US-006 to US-011                 | 21           |
+| Sprint 3 | US-012 to US-014                 | 16           |
 | Sprint 4 | US-015 to US-020, US-022, US-023 | 26           |
 | Sprint 5 | US-024 to US-028                 | 13           |
 | Buffer   | US-021                           | 8            |
