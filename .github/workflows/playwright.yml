@@ -1,0 +1,85 @@
+# EcoChain Playwright E2E Tests
+name: Playwright Tests
+
+on:
+  # Automated triggers (commented out for manual runs only)
+  # push:
+  #   branches: [main, master]
+  # pull_request:
+  #   branches: [main, master]
+
+  # Manual trigger only
+  workflow_dispatch:
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install server dependencies
+        working-directory: ./ecochain/server
+        run: npm ci
+
+      - name: Install client dependencies
+        working-directory: ./ecochain/client
+        run: npm ci
+
+      - name: Install Playwright dependencies
+        working-directory: ./ecochain
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        working-directory: ./ecochain
+        run: npx playwright install --with-deps chromium
+
+      - name: Setup database
+        working-directory: ./ecochain/server
+        run: |
+          npx prisma generate
+          npx prisma db push
+          npm run seed
+
+      - name: Start server
+        working-directory: ./ecochain/server
+        run: npm run dev &
+        env:
+          JWT_SECRET: test-secret-key
+          PORT: 5000
+
+      - name: Start client
+        working-directory: ./ecochain/client
+        run: npm run dev &
+
+      - name: Wait for services
+        run: |
+          npx wait-on http://localhost:5173 --timeout 60000
+          npx wait-on http://localhost:5000/api/items --timeout 60000
+
+      - name: Run Playwright tests
+        working-directory: ./ecochain
+        run: npx playwright test
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: ecochain/playwright-report/
+          retention-days: 30
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: test-results
+          path: ecochain/test-results/
+          retention-days: 30
