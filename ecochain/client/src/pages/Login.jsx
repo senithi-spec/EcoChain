@@ -32,9 +32,11 @@ const Login = () => {
         <div className="card-macos p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-macos-green to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">🌱</span>
-            </div>
+            <img
+              src="/logo.png"
+              alt="EcoChain"
+              className="h-16 w-auto mx-auto mb-4"
+            />
             <h1 className="text-2xl font-bold text-macos-gray-900">
               Welcome back
             </h1>

@@ -16,12 +16,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-macos-green to-emerald-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">🌱</span>
-            </div>
-            <span className="text-xl font-semibold text-macos-gray-900">
-              EcoChain
-            </span>
+            <img src="/logo.png" alt="EcoChain" className="h-10 w-auto" />
           </Link>
 
           {/* Navigation Links */}
